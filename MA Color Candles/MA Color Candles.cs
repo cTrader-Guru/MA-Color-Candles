@@ -11,9 +11,76 @@
 
 using cAlgo.API;
 using cAlgo.API.Indicators;
+using cAlgo.API.Internals;
+using System;
 
 namespace cAlgo
 {
+
+    // --> Estensioni che rendono il codice più leggibile
+    #region Extensions
+
+    /// <summary>
+    /// Estensione che fornisce metodi aggiuntivi per il simbolo
+    /// </summary>
+    public static class SymbolExtensions
+    {
+
+        /// <summary>
+        /// Converte il numero di pips corrente da digits a double
+        /// </summary>
+        /// <param name="Pips">Il numero di pips nel formato Digits</param>
+        /// <returns></returns>
+        public static double DigitsToPips(this Symbol MySymbol, double Pips)
+        {
+
+            return Math.Round(Pips / MySymbol.PipSize, 2);
+
+        }
+
+        /// <summary>
+        /// Converte il numero di pips corrente da double a digits
+        /// </summary>
+        /// <param name="Pips">Il numero di pips nel formato Double (2)</param>
+        /// <returns></returns>
+        public static double PipsToDigits(this Symbol MySymbol, double Pips)
+        {
+
+            return Math.Round(Pips * MySymbol.PipSize, MySymbol.Digits);
+
+        }
+
+    }
+
+    /// <summary>
+    /// Estensione che fornisce metodi aggiuntivi per le Bars
+    /// </summary>
+    public static class BarsExtensions
+    {
+
+        /// <summary>
+        /// Converte l'indice di una bar partendo dalla data di apertura
+        /// </summary>
+        /// <param name="MyTime">La data e l'ora di apertura della candela</param>
+        /// <returns></returns>
+        public static int GetIndexByDate(this Bars MyBars, DateTime MyTime)
+        {
+
+            for (int i = MyBars.ClosePrices.Count - 1; i >= 0; i--)
+            {
+
+                if (MyTime == MyBars.OpenTimes[i])
+                    return i;
+
+            }
+
+            return -1;
+
+        }
+
+    }
+
+    #endregion
 
     [Indicator(IsOverlay = true, TimeZone = TimeZones.UTC, AccessRights = AccessRights.None)]
     public class MAColorCandles : Indicator
@@ -168,6 +235,14 @@ namespace cAlgo
 
         }
 
+        public enum Mode
+        {
+
+            DeTrended,
+            MovingAverage
+
+        }
+
         #endregion
 
         #region Identity
@@ -180,7 +255,7 @@ namespace cAlgo
         /// <summary>
         /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
         /// </summary>
-        public const string VERSION = "1.0.2";
+        public const string VERSION = "1.0.3";
 
         #endregion
 
@@ -192,36 +267,40 @@ namespace cAlgo
         [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://ctrader.guru/product/ma-color-candles/")]
         public string ProductInfo { get; set; }
 
-        [Parameter("Periods", Group = "Params", DefaultValue = 24)]
-        public int MAPeriod { get; set; }
+        [Parameter("Indicator", Group = "Mode", DefaultValue = Mode.DeTrended)]
+        public Mode ModeType { get; set; }
 
-        [Parameter("Moving Average", Group = "Params", DefaultValue = MovingAverageType.Weighted)]
+        [Parameter("Period", Group = "Params", DefaultValue = 21, MinValue = 3)]
+        public int Period { get; set; }
+
+        [Parameter("MA Type", Group = "Params", DefaultValue = MovingAverageType.Exponential)]
         public MovingAverageType MAType { get; set; }
 
-        [Parameter("Candle width", Group = "Styles", DefaultValue = 5)]
-        public int CandleWidth { get; set; }
+        [Parameter("K%", Group = "DeTrended", DefaultValue = 30, MinValue = 0, Step = 0.1)]
+        public double K { get; set; }
 
-        [Parameter("Wick width", Group = "Styles", DefaultValue = 1)]
-        public int WickWidth { get; set; }
+        [Parameter("Bullish Color", Group = "Styles", DefaultValue = MyColors.LimeGreen)]
+        public MyColors BullishColor { get; set; }
 
-        [Parameter("Flat color", Group = "Styles", DefaultValue = MyColors.Orange)]
-        public MyColors FlatColor { get; set; }
+        [Parameter("Mid Bullish Color", Group = "Styles", DefaultValue = MyColors.LightGray)]
+        public MyColors MidBullishColor { get; set; }
 
-        [Parameter("Above down color", Group = "Styles", DefaultValue = MyColors.LimeGreen)]
-        public MyColors AboveDownColor { get; set; }
+        [Parameter("Bearish Color", Group = "Styles", DefaultValue = MyColors.Red)]
+        public MyColors BearishColor { get; set; }
 
-        [Parameter("Below down color", Group = "Styles", DefaultValue = MyColors.Red)]
-        public MyColors BelowDownColor { get; set; }
-
-        [Output("Moving Average", LineColor = "LightGray", LineStyle = LineStyle.Solid)]
-        public IndicatorDataSeries Result { get; set; }
+        [Parameter("Mid Bearish Color", Group = "Styles", DefaultValue = MyColors.LightGray)]
+        public MyColors MidBearishColor { get; set; }
 
         #endregion
 
         #region Property
 
+        private DetrendedPriceOscillator DeTrended;
         private MovingAverage MA;
         private ParabolicSAR SAR;
+
+        private int CandleWidth;
+        private int WickWidth;
 
         #endregion
 
@@ -236,8 +315,18 @@ namespace cAlgo
             // --> Stampo nei log la versione corrente
             Print("{0} : {1}", NAME, VERSION);
 
-            MA = Indicators.MovingAverage(Bars.ClosePrices, MAPeriod, MAType);
+            DeTrended = Indicators.DetrendedPriceOscillator(Bars.ClosePrices, Period, MAType);
+            MA = Indicators.MovingAverage(Bars.ClosePrices, Period, MAType);
             SAR = Indicators.ParabolicSAR(0.02, 0.2);
+
+            K = Symbol.PipsToDigits(K);
+
+            // --> Inizializzo i parametri grafici
+            _updateCandleSize();
+
+            // --> Ridisegno tutte le candele ogni volta che cambia lo zoom
+            Chart.ZoomChanged += _repaint;
+
 
         }
 
@@ -247,7 +336,7 @@ namespace cAlgo
         /// <param name="index">L'indice della candela in elaborazione</param>
         public override void Calculate(int index)
         {
-
+            
             double open = Bars.OpenPrices[index];
             double high = Bars.HighPrices[index];
             double low = Bars.LowPrices[index];
@@ -255,21 +344,50 @@ namespace cAlgo
 
             MyColors color;
 
-            double MyMA = MA.Result[index];
-
-            Result[index] = MyMA;
-
-            if (MyMA < close)
+            switch (ModeType)
             {
-                color = (close > SAR.Result.LastValue) ? AboveDownColor : FlatColor;
-            }
-            else
-            {
-                color = (close < SAR.Result.LastValue) ? BelowDownColor : FlatColor;
+
+                case Mode.MovingAverage:
+
+                    double MyMA = MA.Result[index];
+
+                    if (MyMA < close)
+                    {
+
+                        color = (close > SAR.Result.LastValue) ? BullishColor : MidBullishColor;
+
+                    }
+                    else
+                    {
+
+                        color = (close < SAR.Result.LastValue) ? BearishColor : MidBearishColor;
+
+                    }
+
+                    break;
+
+                default:
+
+                    double MyDeTrended = DeTrended.Result[index];
+
+                    if (MyDeTrended < 0)
+                    {
+
+                        color = (MyDeTrended < -K) ? BearishColor : MidBearishColor;
+
+                    }
+                    else
+                    {
+
+                        color = (MyDeTrended > K) ? BullishColor : MidBullishColor;
+
+                    }
+
+                    break;
 
             }
 
-            Chart.DrawTrendLine("candle" + index, index, open, index, close, Color.FromName( color.ToString( "G" ) ), CandleWidth, LineStyle.Solid);
+            Chart.DrawTrendLine("candle" + index, index, open, index, close, Color.FromName(color.ToString("G")), CandleWidth, LineStyle.Solid);
             Chart.DrawTrendLine("line" + index, index, high, index, low, Color.FromName(color.ToString("G")), WickWidth, LineStyle.Solid);
 
         }
@@ -278,7 +396,104 @@ namespace cAlgo
 
         #region Private Methods
 
-        // --> Seguiamo la signature con underscore "_mioMetodo()"
+        private void _repaint(ChartZoomEventArgs obj = null)
+        {
+
+            _updateCandleSize(obj);
+
+            for (int i = 0; i < Bars.Count -1; i++)
+            {
+
+                Calculate(i);
+
+            }
+
+        }
+
+        private void _updateCandleSize(ChartZoomEventArgs obj = null)
+        {
+            
+            int zoom = (obj == null) ? Chart.ZoomLevel : obj.Chart.ZoomLevel;
+            
+            if (zoom <= 5)
+            {
+
+                CandleWidth = 1;
+                WickWidth = 1;
+
+            }
+            else if (zoom <= 10)
+            {
+
+                CandleWidth = 2;
+                WickWidth = 1;
+
+            }
+            else if (zoom <= 30)
+            {
+
+                CandleWidth = 3;
+                WickWidth = 1;
+
+            }
+            else if (zoom <= 40)
+            {
+
+                CandleWidth = 5;
+                WickWidth = 2;
+
+            }
+            else if (zoom <= 60)
+            {
+
+                CandleWidth = 7;
+                WickWidth = 2;
+
+            }
+            else if (zoom <= 75)
+            {
+
+                CandleWidth = 9;
+                WickWidth = 2;
+
+            }
+            else if (zoom <= 90)
+            {
+
+                CandleWidth = 11;
+                WickWidth = 3;
+
+            }
+            else if (zoom <= 105)
+            {
+
+                CandleWidth = 13;
+                WickWidth = 3;
+
+            }
+            else if (zoom <= 120)
+            {
+
+                CandleWidth = 15;
+                WickWidth = 3;
+
+            }
+            else if (zoom <= 150)
+            {
+
+                CandleWidth = 19;
+                WickWidth = 4;
+
+            }
+            else
+            {
+
+                CandleWidth = 0;
+                WickWidth = 0;
+
+            }
+
+        }
 
         #endregion
 
