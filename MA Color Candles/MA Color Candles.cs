@@ -255,7 +255,7 @@ namespace cAlgo
         /// <summary>
         /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
         /// </summary>
-        public const string VERSION = "1.0.3";
+        public const string VERSION = "1.0.4";
 
         #endregion
 
@@ -273,11 +273,17 @@ namespace cAlgo
         [Parameter("Period", Group = "Params", DefaultValue = 21, MinValue = 3)]
         public int Period { get; set; }
 
+        [Parameter("Smooth", Group = "Params", DefaultValue = 3, MinValue = 1)]
+        public int Smooth { get; set; }
+
         [Parameter("MA Type", Group = "Params", DefaultValue = MovingAverageType.Exponential)]
         public MovingAverageType MAType { get; set; }
 
-        [Parameter("K%", Group = "DeTrended", DefaultValue = 30, MinValue = 0, Step = 0.1)]
+        [Parameter("K% (zero = auto)", Group = "DeTrended", DefaultValue = 0, MinValue = 0, Step = 0.1)]
         public double K { get; set; }
+
+        [Parameter("Auto Period (bars)", Group = "DeTrended", DefaultValue = 300, MinValue = 1, Step = 1)]
+        public int AutoPeriod { get; set; }
 
         [Parameter("Bullish Color", Group = "Styles", DefaultValue = MyColors.LimeGreen)]
         public MyColors BullishColor { get; set; }
@@ -296,8 +302,10 @@ namespace cAlgo
         #region Property
 
         private DetrendedPriceOscillator DeTrended;
+        private ExponentialMovingAverage EMASmooth;
         private MovingAverage MA;
         private ParabolicSAR SAR;
+        private AverageTrueRange ATR;
 
         private int CandleWidth;
         private int WickWidth;
@@ -316,8 +324,10 @@ namespace cAlgo
             Print("{0} : {1}", NAME, VERSION);
 
             DeTrended = Indicators.DetrendedPriceOscillator(Bars.ClosePrices, Period, MAType);
+            EMASmooth = Indicators.ExponentialMovingAverage(DeTrended.Result, Smooth);
             MA = Indicators.MovingAverage(Bars.ClosePrices, Period, MAType);
             SAR = Indicators.ParabolicSAR(0.02, 0.2);
+            ATR = Indicators.AverageTrueRange(Period, MAType);
 
             K = Symbol.PipsToDigits(K);
 
@@ -336,7 +346,7 @@ namespace cAlgo
         /// <param name="index">L'indice della candela in elaborazione</param>
         public override void Calculate(int index)
         {
-            
+
             double open = Bars.OpenPrices[index];
             double high = Bars.HighPrices[index];
             double low = Bars.LowPrices[index];
@@ -365,21 +375,22 @@ namespace cAlgo
                     }
 
                     break;
-
                 default:
 
-                    double MyDeTrended = DeTrended.Result[index];
+
+                    double MyDeTrended = EMASmooth.Result[index];
+                    double KK = (K > 0) ? K : ATR.Result.Maximum(AutoPeriod);
 
                     if (MyDeTrended < 0)
                     {
 
-                        color = (MyDeTrended < -K) ? BearishColor : MidBearishColor;
+                        color = (MyDeTrended < -KK) ? BearishColor : MidBearishColor;
 
                     }
                     else
                     {
 
-                        color = (MyDeTrended > K) ? BullishColor : MidBullishColor;
+                        color = (MyDeTrended > KK) ? BullishColor : MidBullishColor;
 
                     }
 
@@ -401,7 +412,7 @@ namespace cAlgo
 
             _updateCandleSize(obj);
 
-            for (int i = 0; i < Bars.Count -1; i++)
+            for (int i = 0; i < Bars.Count - 1; i++)
             {
 
                 Calculate(i);
@@ -412,9 +423,9 @@ namespace cAlgo
 
         private void _updateCandleSize(ChartZoomEventArgs obj = null)
         {
-            
+
             int zoom = (obj == null) ? Chart.ZoomLevel : obj.Chart.ZoomLevel;
-            
+
             if (zoom <= 5)
             {
 
