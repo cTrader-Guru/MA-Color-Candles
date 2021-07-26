@@ -255,7 +255,7 @@ namespace cAlgo
         /// <summary>
         /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
         /// </summary>
-        public const string VERSION = "1.0.4";
+        public const string VERSION = "1.0.5";
 
         #endregion
 
@@ -379,18 +379,19 @@ namespace cAlgo
 
 
                     double MyDeTrended = EMASmooth.Result[index];
-                    double KK = (K > 0) ? K : ATR.Result.Maximum(AutoPeriod);
+                    double KKmax = (K > 0) ? K : ATR.Result.Maximum(AutoPeriod);
+                    double KKmin = (K > 0) ? -K : ATR.Result.Minimum(AutoPeriod);
 
                     if (MyDeTrended < 0)
                     {
 
-                        color = (MyDeTrended < -KK) ? BearishColor : MidBearishColor;
+                        color = (MyDeTrended < KKmin) ? BearishColor : MidBearishColor;
 
                     }
                     else
                     {
 
-                        color = (MyDeTrended > KK) ? BullishColor : MidBullishColor;
+                        color = (MyDeTrended > KKmax) ? BullishColor : MidBullishColor;
 
                     }
 
