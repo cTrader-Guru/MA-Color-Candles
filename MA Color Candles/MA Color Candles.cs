@@ -379,19 +379,18 @@ namespace cAlgo
 
 
                     double MyDeTrended = EMASmooth.Result[index];
-                    double KKmax = (K > 0) ? K : ATR.Result.Maximum(AutoPeriod);
-                    double KKmin = (K > 0) ? -K : ATR.Result.Minimum(AutoPeriod);
+                    double KK = (K > 0) ? K : ATR.Result.Maximum(AutoPeriod);
 
                     if (MyDeTrended < 0)
                     {
 
-                        color = (MyDeTrended < KKmin) ? BearishColor : MidBearishColor;
+                        color = (MyDeTrended < -KK) ? BearishColor : MidBearishColor;
 
                     }
                     else
                     {
 
-                        color = (MyDeTrended > KKmax) ? BullishColor : MidBullishColor;
+                        color = (MyDeTrended > KK) ? BullishColor : MidBullishColor;
 
                     }
 
