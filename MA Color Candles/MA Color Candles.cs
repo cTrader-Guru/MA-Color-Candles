@@ -72,153 +72,6 @@ namespace cAlgo
 
         #region Enums
 
-        public enum MyColors
-        {
-
-            AliceBlue,
-            AntiqueWhite,
-            Aqua,
-            Aquamarine,
-            Azure,
-            Beige,
-            Bisque,
-            Black,
-            BlanchedAlmond,
-            Blue,
-            BlueViolet,
-            Brown,
-            BurlyWood,
-            CadetBlue,
-            Chartreuse,
-            Chocolate,
-            Coral,
-            CornflowerBlue,
-            Cornsilk,
-            Crimson,
-            Cyan,
-            DarkBlue,
-            DarkCyan,
-            DarkGoldenrod,
-            DarkGray,
-            DarkGreen,
-            DarkKhaki,
-            DarkMagenta,
-            DarkOliveGreen,
-            DarkOrange,
-            DarkOrchid,
-            DarkRed,
-            DarkSalmon,
-            DarkSeaGreen,
-            DarkSlateBlue,
-            DarkSlateGray,
-            DarkTurquoise,
-            DarkViolet,
-            DeepPink,
-            DeepSkyBlue,
-            DimGray,
-            DodgerBlue,
-            Firebrick,
-            FloralWhite,
-            ForestGreen,
-            Fuchsia,
-            Gainsboro,
-            GhostWhite,
-            Gold,
-            Goldenrod,
-            Gray,
-            Green,
-            GreenYellow,
-            Honeydew,
-            HotPink,
-            IndianRed,
-            Indigo,
-            Ivory,
-            Khaki,
-            Lavender,
-            LavenderBlush,
-            LawnGreen,
-            LemonChiffon,
-            LightBlue,
-            LightCoral,
-            LightCyan,
-            LightGoldenrodYellow,
-            LightGray,
-            LightGreen,
-            LightPink,
-            LightSalmon,
-            LightSeaGreen,
-            LightSkyBlue,
-            LightSlateGray,
-            LightSteelBlue,
-            LightYellow,
-            Lime,
-            LimeGreen,
-            Linen,
-            Magenta,
-            Maroon,
-            MediumAquamarine,
-            MediumBlue,
-            MediumOrchid,
-            MediumPurple,
-            MediumSeaGreen,
-            MediumSlateBlue,
-            MediumSpringGreen,
-            MediumTurquoise,
-            MediumVioletRed,
-            MidnightBlue,
-            MintCream,
-            MistyRose,
-            Moccasin,
-            NavajoWhite,
-            Navy,
-            OldLace,
-            Olive,
-            OliveDrab,
-            Orange,
-            OrangeRed,
-            Orchid,
-            PaleGoldenrod,
-            PaleGreen,
-            PaleTurquoise,
-            PaleVioletRed,
-            PapayaWhip,
-            PeachPuff,
-            Peru,
-            Pink,
-            Plum,
-            PowderBlue,
-            Purple,
-            Red,
-            RosyBrown,
-            RoyalBlue,
-            SaddleBrown,
-            Salmon,
-            SandyBrown,
-            SeaGreen,
-            SeaShell,
-            Sienna,
-            Silver,
-            SkyBlue,
-            SlateBlue,
-            SlateGray,
-            Snow,
-            SpringGreen,
-            SteelBlue,
-            Tan,
-            Teal,
-            Thistle,
-            Tomato,
-            Transparent,
-            Turquoise,
-            Violet,
-            Wheat,
-            White,
-            WhiteSmoke,
-            Yellow,
-            YellowGreen
-
-        }
-
         public enum Mode
         {
 
@@ -235,7 +88,7 @@ namespace cAlgo
         public const string NAME = "MA Color Candles";
 
 
-        public const string VERSION = "1.0.5";
+        public const string VERSION = "1.7.3";
 
         #endregion
 
@@ -247,6 +100,9 @@ namespace cAlgo
 
         [Parameter("Indicator", Group = "Mode", DefaultValue = Mode.DeTrended)]
         public Mode ModeType { get; set; }
+
+        [Parameter("Ignore Mid Period", Group = "Mode", DefaultValue = true)]
+        public bool IgnoreMid { get; set; }
 
         [Parameter("Period", Group = "Params", DefaultValue = 21, MinValue = 3)]
         public int Period { get; set; }
@@ -263,17 +119,17 @@ namespace cAlgo
         [Parameter("Auto Period (bars)", Group = "DeTrended", DefaultValue = 300, MinValue = 1, Step = 1)]
         public int AutoPeriod { get; set; }
 
-        [Parameter("Bullish Color", Group = "Styles", DefaultValue = MyColors.LimeGreen)]
-        public MyColors BullishColor { get; set; }
+        [Parameter("Bullish Color", Group = "Styles", DefaultValue = "LimeGreen")]
+        public Color BullishColor { get; set; }
 
-        [Parameter("Mid Bullish Color", Group = "Styles", DefaultValue = MyColors.LightGray)]
-        public MyColors MidBullishColor { get; set; }
+        [Parameter("Mid Bullish Color", Group = "Styles", DefaultValue = "LightGray")]
+        public Color MidBullishColor { get; set; }
 
-        [Parameter("Bearish Color", Group = "Styles", DefaultValue = MyColors.Red)]
-        public MyColors BearishColor { get; set; }
+        [Parameter("Bearish Color", Group = "Styles", DefaultValue = "Red")]
+        public Color BearishColor { get; set; }
 
-        [Parameter("Mid Bearish Color", Group = "Styles", DefaultValue = MyColors.LightGray)]
-        public MyColors MidBearishColor { get; set; }
+        [Parameter("Mid Bearish Color", Group = "Styles", DefaultValue = "LightGray")]
+        public Color MidBearishColor { get; set; }
 
         #endregion
 
@@ -285,8 +141,7 @@ namespace cAlgo
         private ParabolicSAR SAR;
         private AverageTrueRange ATR;
 
-        private int CandleWidth;
-        private int WickWidth;
+        private Color LastColor;
 
         #endregion
 
@@ -306,10 +161,7 @@ namespace cAlgo
 
             K = Symbol.PipsToDigits(K);
 
-            UpdateCandleSize();
-
-            Chart.ZoomChanged += Repaint;
-
+            LastColor = Color.Gray;
 
         }
 
@@ -321,7 +173,7 @@ namespace cAlgo
             double low = Bars.LowPrices[index];
             double close = Bars.ClosePrices[index];
 
-            MyColors color;
+            Color color;
 
             switch (ModeType)
             {
@@ -333,13 +185,13 @@ namespace cAlgo
                     if (MyMA < close)
                     {
 
-                        color = (close > SAR.Result.LastValue) ? BullishColor : MidBullishColor;
+                        color = (close > SAR.Result.LastValue) ? BullishColor : (IgnoreMid) ? LastColor : MidBullishColor;
 
                     }
                     else
                     {
 
-                        color = (close < SAR.Result.LastValue) ? BearishColor : MidBearishColor;
+                        color = (close < SAR.Result.LastValue) ? BearishColor : (IgnoreMid) ? LastColor : MidBearishColor;
 
                     }
 
@@ -353,13 +205,13 @@ namespace cAlgo
                     if (MyDeTrended < 0)
                     {
 
-                        color = (MyDeTrended < -KK) ? BearishColor : MidBearishColor;
+                        color = (MyDeTrended < -KK) ? BearishColor : (IgnoreMid) ? LastColor : MidBearishColor;
 
                     }
                     else
                     {
 
-                        color = (MyDeTrended > KK) ? BullishColor : MidBullishColor;
+                        color = (MyDeTrended > KK) ? BullishColor : (IgnoreMid) ? LastColor : MidBullishColor;
 
                     }
 
@@ -367,111 +219,9 @@ namespace cAlgo
 
             }
 
-            Chart.DrawTrendLine("candle" + index, index, open, index, close, Color.FromName(color.ToString("G")), CandleWidth, LineStyle.Solid);
-            Chart.DrawTrendLine("line" + index, index, high, index, low, Color.FromName(color.ToString("G")), WickWidth, LineStyle.Solid);
+            LastColor = color;
 
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private void Repaint(ChartZoomEventArgs obj = null)
-        {
-
-            UpdateCandleSize(obj);
-
-            for (int i = 0; i < Bars.Count - 1; i++)
-            {
-
-                Calculate(i);
-
-            }
-
-        }
-
-        private void UpdateCandleSize(ChartZoomEventArgs obj = null)
-        {
-
-            int zoom = (obj == null) ? Chart.ZoomLevel : obj.Chart.ZoomLevel;
-
-            if (zoom <= 5)
-            {
-
-                CandleWidth = 1;
-                WickWidth = 1;
-
-            }
-            else if (zoom <= 10)
-            {
-
-                CandleWidth = 2;
-                WickWidth = 1;
-
-            }
-            else if (zoom <= 30)
-            {
-
-                CandleWidth = 3;
-                WickWidth = 1;
-
-            }
-            else if (zoom <= 40)
-            {
-
-                CandleWidth = 5;
-                WickWidth = 2;
-
-            }
-            else if (zoom <= 60)
-            {
-
-                CandleWidth = 7;
-                WickWidth = 2;
-
-            }
-            else if (zoom <= 75)
-            {
-
-                CandleWidth = 9;
-                WickWidth = 2;
-
-            }
-            else if (zoom <= 90)
-            {
-
-                CandleWidth = 11;
-                WickWidth = 3;
-
-            }
-            else if (zoom <= 105)
-            {
-
-                CandleWidth = 13;
-                WickWidth = 3;
-
-            }
-            else if (zoom <= 120)
-            {
-
-                CandleWidth = 15;
-                WickWidth = 3;
-
-            }
-            else if (zoom <= 150)
-            {
-
-                CandleWidth = 19;
-                WickWidth = 4;
-
-            }
-            else
-            {
-
-                CandleWidth = 0;
-                WickWidth = 0;
-
-            }
+            Chart.SetBarColor(index, color);
 
         }
 

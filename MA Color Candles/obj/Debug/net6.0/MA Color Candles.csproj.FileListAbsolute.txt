@@ -1,0 +1,10 @@
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\bin\Debug\net6.0\MA Color Candles.deps.json
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\bin\Debug\net6.0\MA Color Candles.dll
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\bin\Debug\net6.0\MA Color Candles.pdb
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\MA Color Candles.csproj.AssemblyReference.cache
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\MA Color Candles.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\MA Color Candles.csproj.CoreCompileInputs.cache
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\MA Color Candles.dll
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\refint\MA Color Candles.dll
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\MA Color Candles.pdb
+C:\Users\leona\Documents\cAlgo\Sources\Indicators\MA Color Candles\MA Color Candles\obj\Debug\net6.0\ref\MA Color Candles.dll

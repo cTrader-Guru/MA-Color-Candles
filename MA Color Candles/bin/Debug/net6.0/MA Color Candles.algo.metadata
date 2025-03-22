@@ -1,0 +1,153 @@
+[
+  {
+    "Flags": "Indicator",
+    "Guid": "00000000-0000-0000-0000-000000000000",
+    "Group": "Custom",
+    "FriendlyName": "MAColorCandles",
+    "ShortName": null,
+    "TypeName": "cAlgo.MAColorCandles",
+    "AssemblyName": "MA Color Candles, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "TimeZone": "UTC",
+    "IsOverlay": true,
+    "IsPercentage": false,
+    "ScalePrecision": null,
+    "Levels": [],
+    "DefaultSymbolName": null,
+    "DefaultTimeFrame": null,
+    "Video": null,
+    "Lines": [],
+    "Clouds": [],
+    "Parameters": [
+      {
+        "DefaultValue": "https://www.google.com/search?q=ctrader+guru+ma+color+candles",
+        "ParameterType": "String",
+        "PropertyName": "ProductInfo",
+        "FriendlyName": "MA Color Candles 1.7.3",
+        "GroupName": "Identity",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "EnumValues": {
+          "DeTrended": 0,
+          "MovingAverage": 1
+        },
+        "DefaultValue": 0,
+        "ParameterType": "Enum",
+        "PropertyName": "ModeType",
+        "FriendlyName": "Indicator",
+        "GroupName": "Mode",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "DefaultValue": true,
+        "ParameterType": "Boolean",
+        "PropertyName": "IgnoreMid",
+        "FriendlyName": "Ignore Mid Period",
+        "GroupName": "Mode",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "MinValue": 3,
+        "MaxValue": 2147483647,
+        "Step": 1,
+        "DefaultValue": 21,
+        "ParameterType": "Integer",
+        "PropertyName": "Period",
+        "FriendlyName": "Period",
+        "GroupName": "Params",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "MinValue": 1,
+        "MaxValue": 2147483647,
+        "Step": 1,
+        "DefaultValue": 3,
+        "ParameterType": "Integer",
+        "PropertyName": "Smooth",
+        "FriendlyName": "Smooth",
+        "GroupName": "Params",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "EnumValues": {
+          "Simple": 0,
+          "Exponential": 1,
+          "TimeSeries": 2,
+          "Triangular": 3,
+          "VIDYA": 4,
+          "Weighted": 5,
+          "WilderSmoothing": 6,
+          "Hull": 7,
+          "DoubleExponential": 8,
+          "TripleExponential": 9,
+          "KaufmanAdaptive": 10
+        },
+        "DefaultValue": 1,
+        "ParameterType": "Enum",
+        "PropertyName": "MAType",
+        "FriendlyName": "MA Type",
+        "GroupName": "Params",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "MinValue": 0.0,
+        "MaxValue": 1.7976931348623157E+308,
+        "Step": 0.1,
+        "DefaultValue": 0.0,
+        "ParameterType": "Double",
+        "PropertyName": "K",
+        "FriendlyName": "K% (zero = auto)",
+        "GroupName": "DeTrended",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "MinValue": 1,
+        "MaxValue": 2147483647,
+        "Step": 1,
+        "DefaultValue": 300,
+        "ParameterType": "Integer",
+        "PropertyName": "AutoPeriod",
+        "FriendlyName": "Auto Period (bars)",
+        "GroupName": "DeTrended",
+        "IsValueVisibleInTitle": true
+      },
+      {
+        "DefaultValue": "#32CD32FF",
+        "ParameterType": "Color",
+        "PropertyName": "BullishColor",
+        "FriendlyName": "Bullish Color",
+        "GroupName": "Styles",
+        "IsValueVisibleInTitle": false
+      },
+      {
+        "DefaultValue": "#D3D3D3FF",
+        "ParameterType": "Color",
+        "PropertyName": "MidBullishColor",
+        "FriendlyName": "Mid Bullish Color",
+        "GroupName": "Styles",
+        "IsValueVisibleInTitle": false
+      },
+      {
+        "DefaultValue": "#FF0000FF",
+        "ParameterType": "Color",
+        "PropertyName": "BearishColor",
+        "FriendlyName": "Bearish Color",
+        "GroupName": "Styles",
+        "IsValueVisibleInTitle": false
+      },
+      {
+        "DefaultValue": "#D3D3D3FF",
+        "ParameterType": "Color",
+        "PropertyName": "MidBearishColor",
+        "FriendlyName": "Mid Bearish Color",
+        "GroupName": "Styles",
+        "IsValueVisibleInTitle": false
+      }
+    ],
+    "Capabilities": [],
+    "CustomAttributes": [],
+    "Sets": [],
+    "AddIndicatorsToChart": false,
+    "AdditionalInfoUrl": null
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "emPDE9VqgyM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\leona\\Documents\\cAlgo\\Sources\\Indicators\\MA Color Candles\\MA Color Candles\\MA Color Candles.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\leona\\.nuget\\packages\\ctrader.automate\\1.0.12\\ctrader.automate.1.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}
